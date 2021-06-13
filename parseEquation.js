@@ -16,9 +16,9 @@ class Parser {
     this.leftSide = [];
     this.rightSide = [];
 
-    this.termIdx = 0;
     this.termLen;
-    this.coefficientTurn = 1;
+    this.maxTerm = 1;
+    this.attemptNum = 0;
 
     this.parse();
     this.tryCombinations();
@@ -28,7 +28,7 @@ class Parser {
     let termLen = 0;
     this.leftSideEq.split("+").forEach((item) => {
       this.leftSide.push({
-        coefficient: this.coefficientTurn, // Start with co-efficient of 1,
+        coefficient: this.maxTerm, // Start with co-efficient of 1,
         elements: this.parseElements(item),
       });
       termLen++;
@@ -36,7 +36,7 @@ class Parser {
 
     this.rightSideEq.split("+").forEach((item) => {
       this.rightSide.push({
-        coefficient: this.coefficientTurn, // Start with co-efficient of 1,
+        coefficient: this.maxTerm, // Start with co-efficient of 1,
         elements: this.parseElements(item),
       });
       termLen++;
@@ -88,18 +88,18 @@ class Parser {
   }
 
   tryCombinations() {
-    let allCombinations = combinations(this.coefficientTurn, this.termLen);
+    let allCombinations = combinations(this.maxTerm, this.termLen);
     for (let comb of allCombinations) {
       for (let [idx, num] of comb.entries()) {
         this.setCoefficient(idx, num);
       }
       if (this.check()) {
-        log(comb, "✅");
+        log(comb, "✅", ` #${++this.attemptNum}`);
         return true;
       }
-      log(comb, "❌");
+      log(comb, "❌", ` #${++this.attemptNum}`);
     }
-    this.coefficientTurn++;
+    this.maxTerm++;
     this.tryCombinations();
   }
 
