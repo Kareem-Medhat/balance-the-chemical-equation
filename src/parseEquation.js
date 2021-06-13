@@ -1,4 +1,5 @@
-const EquationError = require("./equationError");
+const EquationError = require("../errors/equationError");
+const ImbalanceError = require("../errors/imbalanceError");
 const combinations = require("./combinations");
 
 function log(...a) {
@@ -115,7 +116,7 @@ class Parser {
           let rightAtoms = this.rightSideAtoms(element.name);
 
           if (leftAtoms !== rightAtoms) {
-            throw new Error("Inbalance");
+            throw new ImbalanceError();
           }
         });
       });
