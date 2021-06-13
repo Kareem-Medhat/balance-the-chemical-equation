@@ -22,7 +22,9 @@ function combinations(termNum, numOfTerms) {
     idx++;
   }
   const array = percom.com(terms, numOfTerms);
-  return removeDuplicateArrays(array);
+  return removeDuplicateArrays(array).filter((subArray) =>
+    subArray.includes(termNum)
+  );
 }
 
 module.exports = combinations;
