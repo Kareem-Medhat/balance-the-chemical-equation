@@ -7,9 +7,10 @@ function log(...a) {
 
 class Parser {
   constructor(equation) {
-    equation = equation.replace(" ", "");
+    equation = equation.replaceAll(/\s/g, "");
+
     this.equation = equation;
-    const sides = equation.split("=");
+    const sides = equation.split("->");
     this.leftSideEq = sides[0];
     this.rightSideEq = sides[1];
 
@@ -27,9 +28,11 @@ class Parser {
   parse() {
     let termLen = 0;
     this.leftSideEq.split("+").forEach((item) => {
+      let termRegex = /\d?(.+)/;
       this.leftSide.push({
         coefficient: this.maxTerm, // Start with co-efficient of 1,
         elements: this.parseElements(item),
+        string: item.match(termRegex)[1],
       });
       termLen++;
     });
@@ -38,6 +41,7 @@ class Parser {
       this.rightSide.push({
         coefficient: this.maxTerm, // Start with co-efficient of 1,
         elements: this.parseElements(item),
+        string: item,
       });
       termLen++;
     });
@@ -54,18 +58,52 @@ class Parser {
     return true;
   }
 
+  /**
+   * Parses compunds and elements
+   * @param {string} item - Compound or element
+   * @returns {array}
+   */
   parseElements(item) {
     let output = [];
-    const regEx = /([A-Z][a-z]*)(\d*)/g;
+    let openBrackets = [];
+    const regEx = /(?:([A-Z][a-z]*)(\d*))|(?:\(|\)(\d?))/g;
+
     const generator = item.matchAll(regEx);
     for (let match of generator) {
-      let [element, subscript] = match.slice(1);
-      subscript = +subscript || 1;
-      output.push({
-        name: element,
-        subscript,
-      });
+      let [all] = match;
+      if (all === "(") {
+        openBrackets.unshift([]);
+      } else if (all.startsWith(")")) {
+        let [subscript] = match.slice(3);
+        openBrackets[0].forEach((parsed) => {
+          let bracketOutput = {
+            name: parsed.name,
+            subscript: parsed.subscript * (+subscript || 1),
+          };
+          if (openBrackets[1]) {
+            openBrackets[1].push(bracketOutput);
+          } else {
+            output.push(bracketOutput);
+          }
+        });
+        openBrackets.shift();
+      } else {
+        let [element, subscript] = match.slice(1);
+        subscript = +subscript || 1;
+
+        let parsed = {
+          name: element,
+          subscript,
+        };
+
+        if (openBrackets[0]) {
+          openBrackets[0].push(parsed);
+        } else {
+          output.push(parsed);
+        }
+      }
     }
+
     return output;
   }
 
@@ -142,11 +180,7 @@ class Parser {
 
     const { coefficient } = term;
     outputString += coefficient === 1 ? "" : coefficient;
-    term.elements.forEach((element) => {
-      let { name, subscript } = element;
-      outputString += name;
-      outputString += subscript === 1 ? "" : subscript;
-    });
+    outputString += term.string;
     return outputString;
   }
 
@@ -160,7 +194,7 @@ class Parser {
 
   result() {
     let outputString = this.stringifySide(this.leftSide);
-    outputString += " = ";
+    outputString += " -> ";
     outputString += this.stringifySide(this.rightSide);
     return outputString;
   }
