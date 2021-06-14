@@ -8,6 +8,7 @@ function log(...a) {
 
 class Parser {
   constructor(equation) {
+    if (equation.indexOf("->") === -1) throw new EquationError();
     equation = equation.replaceAll(/\s/g, "");
 
     this.equation = equation;
@@ -23,7 +24,6 @@ class Parser {
     this.attemptNum = 0;
 
     this.parse();
-    this.tryCombinations();
   }
 
   parse() {
@@ -194,10 +194,13 @@ class Parser {
   }
 
   result() {
-    let outputString = this.stringifySide(this.leftSide);
-    outputString += " -> ";
-    outputString += this.stringifySide(this.rightSide);
-    return outputString;
+    return new Promise((resolve) => {
+      this.tryCombinations();
+      let outputString = this.stringifySide(this.leftSide);
+      outputString += " -> ";
+      outputString += this.stringifySide(this.rightSide);
+      resolve(outputString);
+    });
   }
 }
 
