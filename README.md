@@ -1,11 +1,17 @@
 # balance-the-chemical-equation
-Brute-force attempts to balance a chemical equation
+Brute-force attempts to balance a chemical equation written in pure javascript
 
 ## Features
 - Accepts parentheses (even nested brackets work). Examples: (OH)2
 - Result maintains original equation form (not expanded)
 - Async ( returns a promise )
 - Returns the simplified result
+- Lightweight ( only 1 dependency and written in pure javascript )
+
+## Start
+`
+npm install
+`
 
 ## Using it
 `
