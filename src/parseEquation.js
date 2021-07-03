@@ -1,6 +1,7 @@
 const EquationError = require("../errors/equationError");
 const ImbalanceError = require("../errors/imbalanceError");
 const combinations = require("./combinations");
+const chalk = require("chalk");
 
 function log(...a) {
   console.log(...a);
@@ -126,7 +127,7 @@ class Parser {
     }
   }
 
-  tryCombinations() {
+  async tryCombinations() {
     let allCombinations = combinations(this.maxTerm, this.termLen);
     for (let comb of allCombinations) {
       for (let [idx, num] of comb.entries()) {
@@ -139,7 +140,7 @@ class Parser {
       log(comb, "❌", ` #${++this.attemptNum}`);
     }
     this.maxTerm++;
-    this.tryCombinations();
+    return this.tryCombinations();
   }
 
   rightSideAtoms(elementName) {
@@ -176,31 +177,33 @@ class Parser {
     );
   }
 
-  stringifyTerm(term) {
+  stringifyTerm(term, isColored) {
     let outputString = "";
 
     const { coefficient } = term;
-    outputString += coefficient === 1 ? "" : coefficient;
+    // let coString = coefficient === 1 ? "" : coefficient;
+    outputString += isColored
+      ? chalk.rgb(255, 207, 0)(coefficient)
+      : coefficient;
     outputString += term.string;
     return outputString;
   }
 
-  stringifySide(side) {
+  stringifySide(side, isColored) {
     let terms = [];
     side.forEach((term) => {
-      terms.push(this.stringifyTerm(term));
+      terms.push(this.stringifyTerm(term, isColored));
     });
     return terms.join(" + ");
   }
 
-  result() {
-    return new Promise((resolve) => {
-      this.tryCombinations();
-      let outputString = this.stringifySide(this.leftSide);
-      outputString += " -> ";
-      outputString += this.stringifySide(this.rightSide);
-      resolve(outputString);
-    });
+  async result(options) {
+    let { isColored = false } = options;
+    await this.tryCombinations();
+    let outputString = this.stringifySide(this.leftSide, isColored);
+    outputString += " -> ";
+    outputString += this.stringifySide(this.rightSide, isColored);
+    return outputString;
   }
 }
 
